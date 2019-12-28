@@ -44,6 +44,20 @@ app.post('/uploadphoto', upload.single('filetoupload'), function (req, res) {
                 values['modle'] = JSON.stringify(exifData.image.Model);
                 values['createdtime'] = JSON.stringify(exifData.exif.CreateDate);
 
+                if (exifData.gps.GPSLatitudeRef == 'S') {
+                    values['GPSLatitude'] = exifData.gps.GPSLatitude[0] + exifData.gps.GPSLatitude[1] / 60 + exifData.gps.GPSLatitude[2] / 60 / 60;
+                    values['GPSLatitude'] = '-' + values['GPSLatitude'];
+                } else
+                    values['GPSLatitude'] = exifData.gps.GPSLatitude[0] + exifData.gps.GPSLatitude[1] / 60 + exifData.gps.GPSLatitude[2] / 60 / 60;
+
+                if (exifData.gps.GPSLongitudeRef == 'W') {
+                    values['GPSLongitude'] = exifData.gps.GPSLongitude[0] + exifData.gps.GPSLongitude[1] / 60 + exifData.gps.GPSLongitude[2] / 60 / 60;
+                    values['GPSLongitude'] = '-' + values['GPSLongitude'];
+                } else
+                    values['GPSLongitude'] = exifData.gps.GPSLongitude[0] + exifData.gps.GPSLongitude[1] / 60 + exifData.gps.GPSLongitude[2] / 60 / 60;
+                console.log('GPSLatitude ' + values['GPSLatitude']);
+                console.log('GPSLongitude ' + values['GPSLongitude']);
+                //values['lat'] = JSON.stringify(exifData.
                 console.log('make ' + values['make']);
                 console.log('modle ' + values['modle']);
                 console.log('createdtime ' + values['createdtime']);
@@ -56,7 +70,7 @@ app.post('/uploadphoto', upload.single('filetoupload'), function (req, res) {
                         model: values['modle'],
                         createdtime: values['createdtime'],
                         image: 'data:image/jpg;base64,' + values['base64'],
-                        link: null
+                        link: 'maps/' + values['GPSLatitude'] + '/' + values['GPSLongitude'] + '/12'
                     });
                 });
 
@@ -65,10 +79,14 @@ app.post('/uploadphoto', upload.single('filetoupload'), function (req, res) {
     } catch (error) {
         console.log('Error: ' + error.message);
     }
-
-
 });
-
+app.get('/maps/:lat/:lng/:zoom', function (req, res) {
+    res.render('maps', {
+        lat: req.params.lat,
+        lng: req.params.lng,
+        zoom: req.params.zoom
+    });
+});
 
 const server = app.listen(process.env.PORT || 8099, () => {
     const port = server.address().port;
